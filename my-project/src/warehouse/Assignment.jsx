@@ -10,17 +10,27 @@ const AssignShipment = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   // 🔥 Fetch shipments + warehouses
-  useEffect(() => {
   const fetchData = async () => {
     try {
-      const shipRes = await API.get("/shipments/my");
+      // ✅ CHANGE ONLY THIS LINE
+      const shipRes = await API.get(
+        user?.role === "admin" ? "/shipments/all" : "/shipments/my"
+      );
+
       const wareRes = await API.get("/warehouse/");
 
-      console.log(shipRes.data);
-      console.log(wareRes.data);
+      console.log("ALL SHIPMENTS:", shipRes.data);
 
-      setShipments(shipRes.data.message || []);
+      // ✅ SAFE SET
+      setShipments(
+        Array.isArray(shipRes.data?.data)
+          ? shipRes.data.data
+          : shipRes.data || []
+      );
+
       setWarehouses(wareRes.data.warehouses || []);
 
     } catch (err) {
@@ -29,8 +39,9 @@ const AssignShipment = () => {
     }
   };
 
-  fetchData();
-}, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // 🔥 Assign shipment
   const handleAssign = async (e) => {
@@ -51,9 +62,11 @@ const AssignShipment = () => {
 
       alert("Shipment Assigned Successfully ✅");
 
-      // reset selection
       setShipmentId("");
       setWarehouseId("");
+
+      // ✅ REFRESH DATA AFTER ASSIGN
+      fetchData();
 
     } catch (err) {
       alert(err.response?.data?.message || "Error assigning shipment ❌");
@@ -77,23 +90,26 @@ const AssignShipment = () => {
           <select
             value={shipmentId}
             onChange={(e) => setShipmentId(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 border rounded-lg"
           >
             <option value="">Select Shipment</option>
-            {shipments.map((s) => (
-              <option key={s._id} value={s._id}>
-                {s.trackerid} ({s.receiverName})
-              </option>
-            ))}
+
+            {Array.isArray(shipments) &&
+              shipments.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.trackerid} ({s.receiverName})
+                </option>
+              ))}
           </select>
 
           {/* Warehouse Dropdown */}
           <select
             value={warehouseId}
             onChange={(e) => setWarehouseId(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 border rounded-lg"
           >
             <option value="">Select Warehouse</option>
+
             {warehouses.map((w) => (
               <option key={w._id} value={w._id}>
                 {w.name} ({w.location})
@@ -105,14 +121,13 @@ const AssignShipment = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-lg text-white font-medium transition ${
-              loading
-                ? "bg-gray-400"
-                : "bg-indigo-600 hover:bg-indigo-700"
+            className={`w-full py-2 rounded-lg text-white ${
+              loading ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
             }`}
           >
             {loading ? "Assigning..." : "Assign Shipment"}
           </button>
+
         </form>
       </div>
     </div>

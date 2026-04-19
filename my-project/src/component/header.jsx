@@ -1,25 +1,70 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Bell } from "lucide-react";
 import API from "../api/axios";
+import NotificationBell from "../Notification";
 
 const Header = () => {
-  const [user, setUser] = useState(null);
+  // ✅ FIX 1: initial load from localStorage
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user"))
+  );
+
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const data = localStorage.getItem("user");
-    if (data && data !== "undefined") {
-      setUser(JSON.parse(data));
+  const BASE_URL = "http://localhost:5000";
+
+  const fetchUser = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setUser(null);
+      return;
     }
+
+    try {
+      const res = await API.get("/user/me");
+
+      const freshUser = res.data.user;
+
+      // ✅ FIX 2: sync localStorage + state
+      localStorage.setItem("user", JSON.stringify(freshUser));
+      setUser(freshUser);
+
+    } catch (err) {
+      console.log("USER FETCH ERROR:", err.response?.status);
+
+      if (err.response?.status === 401) {
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        setUser(null);
+      }
+    }
+  };
+
+  // ✅ load on mount
+  useEffect(() => {
+    fetchUser();
   }, []);
 
+  // ✅ FIX 3: real-time sync (LOGIN / PROFILE UPDATE)
+  useEffect(() => {
+    const updateUser = () => {
+      const updatedUser = JSON.parse(localStorage.getItem("user"));
+      setUser(updatedUser);
+    };
+
+    window.addEventListener("userChanged", updateUser);
+
+    return () => window.removeEventListener("userChanged", updateUser);
+  }, []);
+
+  // 🔥 LOGOUT
   const handleLogout = async () => {
     try {
-      await API.post("/users/logout");
+      await API.post("/user/logout");
     } catch (err) {
-      console.log(err.response?.data);
+      console.log(err);
     } finally {
       localStorage.removeItem("user");
       localStorage.removeItem("token");
@@ -28,107 +73,75 @@ const Header = () => {
     }
   };
 
-  // 🔥 ENTER PE SEARCH PAGE (optional)
+  // 🔥 SEARCH
   const handleSearchKey = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && search.trim()) {
       navigate(`/search?q=${search}`);
     }
   };
 
-  const getInitials = (email) => {
-    if (!email || email.trim() === "") return "Y";
-
-    email = email.trim();
-
-    if (email.includes("@")) {
-      const name = email.split("@")[0];
-      const parts = name.split(/[._]/);
-
-      if (parts.length > 1) {
-        return (parts[0][0] + parts[1][0]).toUpperCase();
-      }
-
-      return parts[0][0].toUpperCase();
-    }
-
-    const words = email.split(" ").filter(Boolean);
-
+  const getInitials = (name = "") => {
+    const words = name.trim().split(" ");
+    if (!words[0]) return "U";
     return words.length > 1
       ? (words[0][0] + words[1][0]).toUpperCase()
       : words[0][0].toUpperCase();
   };
 
   return (
-    <header className="w-full bg-white border-b px-6 py-3 flex items-center justify-between shadow-sm">
+    <header className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
 
       {/* LOGO */}
       <div className="flex items-center gap-3">
         <div className="bg-blue-600 text-white p-2 rounded-lg">📦</div>
-        <div>
-          <h1 className="font-bold text-lg text-gray-800">LogiTrack</h1>
-          <p className="text-xs text-gray-500">Logistics Portal</p>
-        </div>
+        <h1 className="font-bold text-lg">LogiTrack</h1>
       </div>
 
-      {/* 🔥 FRONTEND SEARCH */}
-      <div className="flex-1 mx-10">
-        <input
-          placeholder="Search orders, tracking numbers..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={handleSearchKey}
-          className="w-full px-4 py-2 bg-gray-100 border rounded-full focus:ring-2 focus:ring-blue-400 outline-none"
-        />
-      </div>
+      {/* SEARCH */}
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onKeyDown={handleSearchKey}
+        placeholder="Search shipments..."
+        className="px-4 py-2 bg-gray-100 rounded-full w-1/3 outline-none"
+      />
 
       {/* RIGHT SIDE */}
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-4">
 
-        {/* BELL */}
-        <div className="relative">
-          <Bell size={20} className="text-gray-600" />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </div>
+        {user && <NotificationBell user={user} />}
 
-        {/* LOGIN / REGISTER */}
-        {!user && (
-          <>
-            <Link
-              to="/login"
-              className="px-4 py-1 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition"
-            >
-              Login
-            </Link>
-
-            <Link
-              to="/register"
-              className="px-4 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-            >
+        {!user ? (
+          <div className="flex items-center gap-3">
+            <Link to="/register" className="bg-green-500 text-white px-3 py-1 rounded">
               Register
             </Link>
-          </>
-        )}
-
-        {/* USER */}
-        {user && (
+            <Link to="/login" className="bg-blue-600 text-white px-3 py-1 rounded">
+              Login
+            </Link>
+          </div>
+        ) : (
           <>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-gray-500 font-semibold text-2xl capitalize">
-                  {user?.role || "User"}
-                </p>
-              </div>
+            <span className="text-sm bg-gray-100 px-2 py-1 rounded capitalize">
+              {user.role}
+            </span>
 
-              <div className="w-9 h-9 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold">
-                {getInitials(
-                  user.fullName || user.username || user.name || user.email
-                )}
-              </div>
+            {/* 🔥 IMAGE FIX (cache busting) */}
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-blue-600 flex items-center justify-center text-white font-bold">
+              {user.avatar ? (
+                <img
+                  src={`${BASE_URL}/${user.avatar.replace(/\\/g, "/")}?t=${Date.now()}`}
+                  className="w-full h-full object-cover"
+                  alt="avatar"
+                />
+              ) : (
+                getInitials(user.fullName || user.email)
+              )}
             </div>
 
             <button
               onClick={handleLogout}
-              className="text-white bg-blue-600 text-sm hover:bg-blue-700 px-3 py-1 rounded-lg transition"
+              className="bg-red-500 text-white px-3 py-1 rounded"
             >
               Logout
             </button>

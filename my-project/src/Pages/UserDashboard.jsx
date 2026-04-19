@@ -3,7 +3,7 @@ import API from "../api/axios";
 import { Plus, Box } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const Dashboard = () => {
+const UserDashboard = () => {
   const [stats, setStats] = useState({
     totalShipments: 0,
     delivered: 0,
@@ -14,7 +14,8 @@ const Dashboard = () => {
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  // ✅ SAFE USER
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -33,29 +34,50 @@ const Dashboard = () => {
     }
   };
 
+  // ✅ FIXED STATS API (ADMIN vs USER)
   const getStats = async () => {
-    try {
-      const res = await API.get("/admin/dashboard");
-      setStats(res.data || {});
-    } catch (error) {
-      console.error("Stats error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await API.get("/shipments/my");
 
+    const data = Array.isArray(res.data?.data)
+      ? res.data.data
+      : [];
+
+    setShipments(data);
+
+    const totalShipments = data.length;
+
+    const delivered = data.filter(s => s.status === "delivered").length;
+
+    const pending = data.filter(s =>
+      ["created", "packed", "in_transit"].includes(s.status)
+    ).length;
+
+    const revenue = data.reduce((sum, s) => sum + (s.price || 0), 0);
+
+    setStats({
+      totalShipments,
+      delivered,
+      pending,
+      revenue,
+    });
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+  // ✅ SAFE SHIPMENTS FETCH
   const getShipments = async () => {
     try {
       const res = await API.get("/shipments/my");
 
-      // ✅ SAFE RESPONSE HANDLING
-      const data =
-        res.data?.data ||
-        res.data?.message ||
-        res.data ||
-        [];
+      const data = Array.isArray(res.data?.data)
+        ? res.data.data
+        : [];
 
-      setShipments(Array.isArray(data) ? data : []);
+      setShipments(data);
     } catch (err) {
       console.error("Shipments error:", err);
       setShipments([]);
@@ -75,7 +97,7 @@ const Dashboard = () => {
     );
   }
 
-  // ✅ SORT + RECENT 3 FIXED HERE
+  // ✅ SORT + RECENT 3
   const recentShipments = [...shipments]
     .sort((a, b) => {
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -179,10 +201,10 @@ const Dashboard = () => {
                     <td className="p-3 font-medium">
                       ORD-{s.trackerid?.slice(-6) || index + 1}
                     </td>
-      
-                   <td className="p-3 text-gray-600">
-  {s.sender?.fullName || "Unknown"} → {s.receiverName || "N/A"}
-</td>
+
+                    <td className="p-3 text-gray-600">
+                      {s.sender?.fullName || "Unknown"} → {s.receiverName || "N/A"}
+                    </td>
 
                     <td className="p-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(s.status)}`}>
@@ -223,4 +245,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default UserDashboard;

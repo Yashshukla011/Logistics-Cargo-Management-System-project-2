@@ -8,6 +8,7 @@ const Login = () => {
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -16,6 +17,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const payload = { password: data.password };
@@ -28,25 +30,45 @@ const Login = () => {
 
       const res = await API.post("/users/login", payload);
 
-      const user =
-        res.data?.data?.user ||
-        res.data?.user ||
-        res.data?.data;
+      console.log("LOGIN RESPONSE:", res.data);
 
-      if (!user) {
-        alert("Login failed");
+      // ✅ safe extraction
+      const user = res.data?.data?.user || res.data?.user;
+      const token =
+        res.data?.data?.accessToken ||
+        res.data?.accessToken ||
+        res.data?.token;
+
+      if (!user || !token) {
+        alert("Invalid login response");
+        setLoading(false);
         return;
       }
-console.log(res.data);
-      localStorage.setItem("user", JSON.stringify(user));
 
-      navigate("/");
-      window.location.reload();
-      
+      // ❌ DON'T clear everything
+      // localStorage.removeItem("user");
+      // localStorage.removeItem("token");
+
+      // ✅ save fresh session
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+
+      // optional sync event
+      window.dispatchEvent(new Event("userChanged"));
+
+// window.location.href = user.role === "admin" ? "/admin" : "/user";
+      // ✅ role based redirect
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/user");
+      }
 
     } catch (err) {
-      console.log(err.response?.data);
-      alert("Error in login");
+      console.log(err.response?.data || err);
+      alert(err.response?.data?.message || "Login error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,9 +99,10 @@ console.log(res.data);
 
         <button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-semibold"
+          disabled={loading}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-semibold disabled:opacity-50"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>

@@ -7,7 +7,7 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
 
   const query = new URLSearchParams(useLocation().search);
-  const q = query.get("q"); // ✅ FIXED
+  const q = query.get("q");
 
   useEffect(() => {
     const fetchSearch = async () => {
@@ -17,8 +17,7 @@ const SearchPage = () => {
         setLoading(true);
 
         const res = await API.get(`/shipments/search?q=${q.trim()}`);
-
-        setResults(res.data || []);
+        setResults(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.log(err);
       } finally {
@@ -42,26 +41,43 @@ const SearchPage = () => {
       ) : results.length === 0 ? (
         <p className="text-gray-400">No results found</p>
       ) : (
-        results.map((item) => (
-          <div key={item._id} className="p-3 border rounded mb-2 bg-white">
-            <p className="font-medium">
-              {item.receiverName} → {item.receiverAddress}
+        results.map((s) => (
+          <div key={s._id} className="p-4 border rounded mb-3 bg-white shadow-sm">
+
+            {/* SAME AS DASHBOARD */}
+            <p className="text-gray-700 font-medium">
+              {s.sender?.fullName || "Unknown"} → {s.receiverName || "N/A"}
+            </p>
+
+            {/* ADDRESS */}
+            {s.sender?.address && (
+              <p className="text-gray-400 text-sm">
+                From: {s.sender.address}
+              </p>
+            )}
+
+            {s.receiverAddress && (
+              <p className="text-gray-400 text-sm">
+                To: {s.receiverAddress}
+              </p>
+            )}
+
+            {/* DETAILS */}
+            <p className="text-sm text-gray-500 mt-2">
+              Tracker ID: {s.trackerid}
             </p>
 
             <p className="text-sm text-gray-500">
-              Tracker ID: {item.trackerid}
+              Docket Number: {s.DocketNumber}
             </p>
-            <p className="text-sm text-gray-500">
-              Docket Number: {item.DocketNumber}
-          
-          
-            </p>
+
             <p className="text-sm">
               Status:{" "}
               <span className="text-indigo-600 font-semibold">
-                {item.status}
+                {s.status}
               </span>
             </p>
+
           </div>
         ))
       )}

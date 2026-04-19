@@ -5,46 +5,115 @@ const Profile = () => {
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
 
-  const [form, setForm] = useState({ fullName: "", email: "" });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+  });
+
   const [passwords, setPasswords] = useState({
     oldPassword: "",
     newPassword: "",
   });
 
+  const BASE_URL = "http://localhost:5000";
+
+  const getImageUrl = (avatar) => {
+    if (!avatar) return "/default.png";
+    return `${BASE_URL}/${avatar.replace(/\\/g, "/")}`;
+  };
+
   useEffect(() => {
     fetchProfile();
   }, []);
 
+  // ================= PROFILE =================
   const fetchProfile = async () => {
     try {
-      const res = await API.get("/user/me");
+      const res = await API.get("/user/me", {
+        withCredentials: true,
+      });
+
       setData(res.data);
 
       setForm({
-        fullName: res.data.user.fullName,
-        email: res.data.user.email,
+        fullName: res.data?.user?.fullName || "",
+        email: res.data?.user?.email || "",
       });
+
     } catch (err) {
       console.log(err);
     }
   };
 
+  // ================= UPDATE =================
   const updateProfile = async () => {
-    await API.put("/user/update", form);
-    alert("Profile updated");
-    fetchProfile();
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("fullName", form.fullName);
+      formData.append("email", form.email);
+
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
+      await API.put("/user/update", formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setAvatarFile(null);
+      await fetchProfile();
+
+      console.log("✅ Profile Updated");
+
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ================= PASSWORD FIXED =================
   const changePassword = async () => {
-    await API.put("/user/change-password", passwords);
-    alert("Password changed");
-    setPasswords({ oldPassword: "", newPassword: "" });
+    try {
+      if (!passwords.oldPassword || !passwords.newPassword) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      if (passwords.newPassword.length < 6) {
+        alert("Password must be at least 6 characters");
+        return;
+      }
+
+      await API.put("/user/change-password", passwords, {
+        withCredentials: true,
+      });
+
+      alert("Password updated successfully");
+
+      setPasswords({
+        oldPassword: "",
+        newPassword: "",
+      });
+
+    } catch (err) {
+      console.log(err);
+      alert("Password change failed");
+    }
   };
 
   if (!data) {
     return (
-      <div className="h-screen flex items-center justify-center text-indigo-600 animate-pulse">
-        Loading Profile...
+      <div className="h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-indigo-600 font-semibold animate-pulse">
+          Loading Profile...
+        </div>
       </div>
     );
   }
@@ -52,190 +121,183 @@ const Profile = () => {
   const { user, stats, recentShipments } = data;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
 
       {/* HERO */}
-      <div className="relative h-48 bg-gradient-to-r from-indigo-600 to-indigo-800">
+      <div className="relative h-72 bg-gray-900">
 
-        {/* AVATAR + INFO */}
-        <div className="absolute -bottom-12 left-8 flex items-end gap-4">
+        <label className="absolute inset-0 cursor-pointer">
+          <input
+            type="file"
+            hidden
+            onChange={(e) => setAvatarFile(e.target.files[0])}
+          />
 
-          {/* AVATAR (IMAGE + FALLBACK FIXED) */}
-          <div className="w-24 h-24 rounded-full bg-white p-1 shadow-lg overflow-hidden flex items-center justify-center">
+          <img
+            src={`${getImageUrl(user?.avatar)}?t=${Date.now()}`}
+            className="w-full h-full object-cover opacity-70"
+          />
+        </label>
 
-            {user.avatar ? (
-              <img
-                src={user.avatar}
-                alt="profile"
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-indigo-600 text-white text-3xl font-bold">
-                {user.fullName?.charAt(0).toUpperCase()}
-              </div>
-            )}
+        {/* PROFILE CARD */}
+        <div className="absolute bottom-[-40px] left-10 flex items-center gap-4 bg-white shadow-xl rounded-2xl p-4">
 
+          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-indigo-500">
+            <img
+              src={`${getImageUrl(user?.avatar)}?t=${Date.now()}`}
+              className="w-full h-full object-cover opacity-70 border-2"
+            />
           </div>
 
-          {/* NAME */}
-          <div className="text-white mb-2">
-            <h2 className="text-2xl font-bold">{user.fullName}</h2>
-            <p className="text-sm opacity-90">{user.email}</p>
+          <div>
+            <h2 className="text-xl font-bold">{user?.fullName}</h2>
+            <p className="text-sm text-gray-500">{user?.email}</p>
+            <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
+              {user?.role}
+            </span>
           </div>
 
         </div>
       </div>
 
       {/* CONTENT */}
-      <div className="pt-16 px-6">
-
-        {/* ROLE */}
-        <div className="inline-flex items-center gap-2 bg-white shadow-sm border px-3 py-1 rounded-full text-sm text-gray-700">
-          <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
-          Role: <span className="font-semibold text-indigo-600">{user.role}</span>
-        </div>
+      <div className="pt-20 px-6">
 
         {/* STATS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-6">
+        <div className="grid grid-cols-3 gap-4 mb-6">
 
-          <div className="bg-white rounded-xl shadow-sm border p-5">
-            <p className="text-gray-500">Total Shipments</p>
-            <h2 className="text-3xl font-bold text-gray-800">{stats.total}</h2>
+          <div className="bg-white p-4 rounded-xl shadow hover:scale-105 transition">
+            <p>Total</p>
+            <h2 className="text-xl font-bold">{stats?.total}</h2>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border-l-4 border-emerald-500 p-5">
-            <p className="text-gray-500">Delivered</p>
-            <h2 className="text-3xl font-bold text-emerald-600">
-              {stats.delivered}
+          <div className="bg-green-100 p-4 rounded-xl shadow">
+            <p>Delivered</p>
+            <h2 className="text-xl font-bold text-green-600">
+              {stats?.delivered}
             </h2>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border-l-4 border-amber-400 p-5">
-            <p className="text-gray-500">Pending</p>
-            <h2 className="text-3xl font-bold text-amber-500">
-              {stats.pending}
+          <div className="bg-yellow-100 p-4 rounded-xl shadow">
+            <p>Pending</p>
+            <h2 className="text-xl font-bold text-yellow-600">
+              {stats?.pending}
             </h2>
           </div>
 
         </div>
 
         {/* TABS */}
-        <div className="flex gap-6 mt-8 border-b">
-          {["profile", "security", "shipments"].map((tab) => (
+        <div className="flex gap-6 border-b mb-4">
+          {["profile", "security", "shipments"].map((t) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 capitalize transition ${
-                activeTab === tab
-                  ? "border-b-2 border-indigo-600 text-indigo-600 font-semibold"
-                  : "text-gray-500 hover:text-gray-700"
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className={`pb-2 capitalize font-medium ${
+                activeTab === t
+                  ? "border-b-2 border-indigo-600 text-indigo-600"
+                  : "text-gray-500"
               }`}
             >
-              {tab}
+              {t}
             </button>
           ))}
         </div>
 
-        {/* GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        {/* PROFILE TAB */}
+        {activeTab === "profile" && (
+          <div className="bg-white p-5 rounded-xl shadow">
 
-          {/* PROFILE */}
-          {activeTab === "profile" && (
-            <div className="bg-white shadow-sm border rounded-xl p-6">
-              <h3 className="font-bold mb-4">Edit Profile</h3>
+            <input
+              className="w-full border p-2 rounded mb-3"
+              value={form.fullName}
+              onChange={(e) =>
+                setForm({ ...form, fullName: e.target.value })
+              }
+              placeholder="Full Name"
+            />
 
-              <input
-                className="w-full border p-2 rounded-lg mb-3 focus:ring-2 focus:ring-indigo-400"
-                value={form.fullName}
-                onChange={(e) =>
-                  setForm({ ...form, fullName: e.target.value })
-                }
-                placeholder="Full Name"
-              />
+            <input
+              className="w-full border p-2 rounded mb-3"
+              value={form.email}
+              onChange={(e) =>
+                setForm({ ...form, email: e.target.value })
+              }
+              placeholder="Email"
+            />
 
-              <input
-                className="w-full border p-2 rounded-lg mb-3 focus:ring-2 focus:ring-indigo-400"
-                value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
-                placeholder="Email"
-              />
+            <button
+              onClick={updateProfile}
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
+            >
+              {loading ? "Updating..." : "Update Profile"}
+            </button>
 
-              <button
-                onClick={updateProfile}
-                className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
-              >
-                Update Profile
-              </button>
-            </div>
-          )}
+          </div>
+        )}
 
-          {/* SECURITY */}
-          {activeTab === "security" && (
-            <div className="bg-white shadow-sm border rounded-xl p-6">
-              <h3 className="font-bold mb-4">Change Password</h3>
+        {/* SECURITY TAB FIXED */}
+        {activeTab === "security" && (
+          <div className="bg-white p-5 rounded-xl shadow">
 
-              <input
-                type="password"
-                className="w-full border p-2 rounded-lg mb-3 focus:ring-2 focus:ring-indigo-400"
-                placeholder="Old Password"
-                value={passwords.oldPassword}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, oldPassword: e.target.value })
-                }
-              />
+            <h2 className="font-bold mb-4">Change Password</h2>
 
-              <input
-                type="password"
-                className="w-full border p-2 rounded-lg mb-3 focus:ring-2 focus:ring-indigo-400"
-                placeholder="New Password"
-                value={passwords.newPassword}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, newPassword: e.target.value })
-                }
-              />
+            <input
+              type="password"
+              className="w-full border p-2 rounded mb-3"
+              placeholder="Old Password"
+              value={passwords.oldPassword}
+              onChange={(e) =>
+                setPasswords({ ...passwords, oldPassword: e.target.value })
+              }
+            />
 
-              <button
-                onClick={changePassword}
-                className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
-              >
-                Change Password
-              </button>
-            </div>
-          )}
+            <input
+              type="password"
+              className="w-full border p-2 rounded mb-3"
+              placeholder="New Password"
+              value={passwords.newPassword}
+              onChange={(e) =>
+                setPasswords({ ...passwords, newPassword: e.target.value })
+              }
+            />
 
-          {/* SHIPMENTS */}
-          {activeTab === "shipments" && (
-            <div className="lg:col-span-2 bg-white shadow-sm border rounded-xl p-6">
-              <h3 className="font-bold mb-4">Recent Shipments</h3>
+            <button
+              onClick={changePassword}
+              className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
+            >
+              Update Password
+            </button>
 
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {recentShipments?.length ? (
-                  recentShipments.map((s) => (
-                    <div
-                      key={s._id}
-                      className="p-3 border rounded-lg hover:shadow-sm transition bg-white"
-                    >
-                      <p className="font-medium">
-                        {s.receiverName} → {s.receiverAddress}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Status:{" "}
-                        <span className="text-indigo-600 font-semibold">
-                          {s.status}
-                        </span>
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-400">No shipments found</p>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
+        )}
 
-        </div>
+        {/* SHIPMENTS */}
+        {activeTab === "shipments" && (
+          <div className="bg-white p-5 rounded-xl shadow max-h-96 overflow-y-auto">
+
+            {recentShipments?.length ? (
+              recentShipments.map((s) => (
+                <div
+                  key={s._id}
+                  className="border p-3 rounded mb-2 hover:bg-gray-50"
+                >
+                  <p className="font-medium">
+                    {s.receiverName} → {s.receiverAddress}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {s.status}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400">No shipments found</p>
+            )}
+
+          </div>
+        )}
+
       </div>
     </div>
   );
