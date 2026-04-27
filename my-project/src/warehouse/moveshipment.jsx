@@ -12,9 +12,11 @@ const MoveShipment = () => {
 
   const fetchData = async () => {
     try {
-      // ✅ FIX HERE ALSO
+      // ✅ FIXED HERE
       const shipRes = await API.get(
-        user?.role === "admin" ? "/shipments/all" : "/shipments/my"
+        user?.role === "admin"
+          ? "/shipments/all"   // 🔥 FIX
+          : "/shipments/my"
       );
 
       const wareRes = await API.get("/warehouse/");
@@ -55,7 +57,6 @@ const MoveShipment = () => {
       setShipmentId("");
       setToWarehouseId("");
 
-      // ✅ REFRESH
       fetchData();
 
     } catch (err) {

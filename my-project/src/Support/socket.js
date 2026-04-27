@@ -1,9 +1,10 @@
 import { io } from "socket.io-client";
 
 
+
 const socket = io("http://localhost:5000", {
-  transports: ["websocket"],   // 🔥 important
-  autoConnect: true,
+  transports: ["websocket", "polling"],
+  autoConnect: false, // 🔥 IMPORTANT FIX
 });
 
 export default socket;

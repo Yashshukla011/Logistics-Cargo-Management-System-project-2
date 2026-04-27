@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import NotificationBell from "../Notification";
-
+import socket from "../Support/socket";
 const Header = () => {
   // ✅ FIX 1: initial load from localStorage
   const [user, setUser] = useState(
@@ -46,7 +46,26 @@ const Header = () => {
   useEffect(() => {
     fetchUser();
   }, []);
+useEffect(() => {
+  if (!user?._id) return;
 
+  // 🔥 prevent multiple connects
+  if (!socket.connected) {
+    socket.connect();
+  }
+
+  socket.emit("register", user._id);
+
+  const handleNotification = (data) => {
+    console.log("🔔 Notification:", data);
+  };
+
+  socket.on("notification", handleNotification);
+
+  return () => {
+    socket.off("notification", handleNotification);
+  };
+}, [user?._id]);
   // ✅ FIX 3: real-time sync (LOGIN / PROFILE UPDATE)
   useEffect(() => {
     const updateUser = () => {
@@ -63,13 +82,15 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await API.post("/user/logout");
+      navigate("/")
     } catch (err) {
       console.log(err);
     } finally {
+       socket.disconnect();
       localStorage.removeItem("user");
       localStorage.removeItem("token");
       setUser(null);
-      navigate("/login");
+      navigate("/");
     }
   };
 
@@ -77,7 +98,9 @@ const Header = () => {
   const handleSearchKey = (e) => {
     if (e.key === "Enter" && search.trim()) {
       navigate(`/search?q=${search}`);
+       setSearch("")
     }
+   
   };
 
   const getInitials = (name = "") => {
@@ -94,7 +117,7 @@ const Header = () => {
       {/* LOGO */}
       <div className="flex items-center gap-3">
         <div className="bg-blue-600 text-white p-2 rounded-lg">📦</div>
-        <h1 className="font-bold text-lg">LogiTrack</h1>
+        <h1 className="font-bold text-lg">CargoX</h1>
       </div>
 
       {/* SEARCH */}

@@ -23,7 +23,11 @@ const AdminRevenue = () => {
   const fetchPayments = async () => {
     try {
       const res = await API.get("/revenue/recent");
-      setPayments(res.data.data);
+
+      console.log("ADMIN PAYMENTS:", res.data);
+
+      // SAFE: handle empty or wrong response
+      setPayments(res.data?.data || []);
     } catch (err) {
       console.log(err);
     }
@@ -42,7 +46,7 @@ const AdminRevenue = () => {
         💰 Admin Revenue Dashboard
       </h1>
 
-      {/* STATS CARDS */}
+      {/* STATS */}
       <div className="grid grid-cols-3 gap-4 mb-6">
 
         <div className="bg-white p-4 rounded shadow">
@@ -51,7 +55,7 @@ const AdminRevenue = () => {
         </div>
 
         <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-gray-500">Paid Shipments</h2>
+          <h2 className="text-gray-500">Paid Payments</h2>
           <p className="text-2xl font-bold text-green-600">
             {stats.paidCount}
           </p>
@@ -79,25 +83,36 @@ const AdminRevenue = () => {
             <tr className="text-left border-b">
               <th>Tracker</th>
               <th>Receiver</th>
-              <th>Price</th>
+              <th>Amount</th>
               <th>Date</th>
             </tr>
           </thead>
 
           <tbody>
 
-            {payments.map((p) => (
-              <tr key={p._id} className="border-b">
-
-                <td>{p.trackerid}</td>
-                <td>{p.receiverName}</td>
-                <td>₹{p.price}</td>
-                <td>
-                  {new Date(p.updatedAt).toLocaleDateString()}
+            {payments.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center py-4 text-gray-500">
+                  No payments found
                 </td>
-
               </tr>
-            ))}
+            ) : (
+              payments.map((p) => (
+                <tr key={p._id} className="border-b">
+
+                  {/* FIXED SAFE FIELDS */}
+                  <td>{p.shipment?.tracker || "N/A"}</td>
+                  <td>{p.shipment?.receiver || "N/A"}</td>
+                  <td>₹{p.amount || 0}</td>
+                  <td>
+                    {p.createdAt
+                      ? new Date(p.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </td>
+
+                </tr>
+              ))
+            )}
 
           </tbody>
 

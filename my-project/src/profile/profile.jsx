@@ -48,6 +48,26 @@ const Profile = () => {
     }
   };
 
+  // ================= DELETE AVATAR =================
+  const deleteAvatar = async () => {
+    try {
+      if (!window.confirm("Remove profile photo?")) return;
+
+      await API.delete("/avatar", {
+        withCredentials: true,
+      });
+
+      setAvatarFile(null);
+      await fetchProfile();
+
+      alert("✅ Profile photo removed");
+
+    } catch (err) {
+      console.log(err);
+      alert("❌ Error deleting image");
+    }
+  };
+
   // ================= UPDATE =================
   const updateProfile = async () => {
     try {
@@ -69,7 +89,7 @@ const Profile = () => {
       setAvatarFile(null);
       await fetchProfile();
 
-      console.log("✅ Profile Updated");
+      alert("✅ Profile Updated");
 
     } catch (err) {
       console.log(err);
@@ -78,7 +98,7 @@ const Profile = () => {
     }
   };
 
-  // ================= PASSWORD FIXED =================
+  // ================= PASSWORD =================
   const changePassword = async () => {
     try {
       if (!passwords.oldPassword || !passwords.newPassword) {
@@ -142,16 +162,33 @@ const Profile = () => {
         {/* PROFILE CARD */}
         <div className="absolute bottom-[-40px] left-10 flex items-center gap-4 bg-white shadow-xl rounded-2xl p-4">
 
-          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-indigo-500">
-            <img
-              src={`${getImageUrl(user?.avatar)}?t=${Date.now()}`}
-              className="w-full h-full object-cover opacity-70 border-2"
-            />
+          {/* AVATAR + DELETE */}
+          <div className="flex flex-col items-center">
+
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-indigo-500">
+              <img
+                src={`${getImageUrl(user?.avatar)}?t=${Date.now()}`}
+                className="w-full h-full object-cover border-2"
+              />
+            </div>
+
+            {/* DELETE BUTTON */}
+            {user?.avatar && (
+              <button
+                onClick={deleteAvatar}
+                className="text-xs text-red-500 mt-2 hover:underline"
+              >
+                Remove Photo
+              </button>
+            )}
+
           </div>
 
+          {/* USER INFO */}
           <div>
             <h2 className="text-xl font-bold">{user?.fullName}</h2>
             <p className="text-sm text-gray-500">{user?.email}</p>
+
             <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
               {user?.role}
             </span>
@@ -166,7 +203,7 @@ const Profile = () => {
         {/* STATS */}
         <div className="grid grid-cols-3 gap-4 mb-6">
 
-          <div className="bg-white p-4 rounded-xl shadow hover:scale-105 transition">
+          <div className="bg-white p-4 rounded-xl shadow">
             <p>Total</p>
             <h2 className="text-xl font-bold">{stats?.total}</h2>
           </div>
@@ -229,7 +266,7 @@ const Profile = () => {
             <button
               onClick={updateProfile}
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
+              className="w-full bg-indigo-600 text-white py-2 rounded"
             >
               {loading ? "Updating..." : "Update Profile"}
             </button>
@@ -237,11 +274,9 @@ const Profile = () => {
           </div>
         )}
 
-        {/* SECURITY TAB FIXED */}
+        {/* SECURITY TAB */}
         {activeTab === "security" && (
           <div className="bg-white p-5 rounded-xl shadow">
-
-            <h2 className="font-bold mb-4">Change Password</h2>
 
             <input
               type="password"
@@ -265,7 +300,7 @@ const Profile = () => {
 
             <button
               onClick={changePassword}
-              className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
+              className="w-full bg-red-500 text-white py-2 rounded"
             >
               Update Password
             </button>
@@ -281,7 +316,7 @@ const Profile = () => {
               recentShipments.map((s) => (
                 <div
                   key={s._id}
-                  className="border p-3 rounded mb-2 hover:bg-gray-50"
+                  className="border p-3 rounded mb-2"
                 >
                   <p className="font-medium">
                     {s.receiverName} → {s.receiverAddress}

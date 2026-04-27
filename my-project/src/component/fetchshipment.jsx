@@ -17,8 +17,9 @@ const MyShipments = () => {
     try {
       let res;
 
+      // 🔥 FIXED HERE ONLY
       if (user?.role === "admin") {
-        res = await API.get("/shipments/all");
+        res = await API.get("/shipments/all"); // ✅ FIX
       } else {
         res = await API.get("/shipments/my");
       }
@@ -121,7 +122,6 @@ const MyShipments = () => {
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
 
-          {/* HEADER */}
           <thead className="bg-gray-100 text-left">
             <tr>
               <th className="p-3">Receiver</th>
@@ -134,7 +134,6 @@ const MyShipments = () => {
             </tr>
           </thead>
 
-          {/* BODY */}
           <tbody>
             {filtered.length === 0 ? (
               <tr>
@@ -161,7 +160,7 @@ const MyShipments = () => {
 
                   <td>{s.weight} kg</td>
 
-                  {/* 💳 PAYMENT COLUMN */}
+                  {/* 💳 PAYMENT */}
                   <td>
                     {s.paymentStatus === "PAID" ? (
                       <span className="text-green-600 font-bold">
@@ -200,7 +199,7 @@ const MyShipments = () => {
         </table>
       </div>
 
-      {/* MODAL (ADMIN ONLY) */}
+      {/* MODAL */}
       {selectedId && user?.role === "admin" && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 

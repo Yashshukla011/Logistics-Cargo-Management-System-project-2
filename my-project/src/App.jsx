@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import { Navigate } from "react-router-dom";
 import Sidebar from "./Pages/sidebaar";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
@@ -15,7 +15,7 @@ import Assignwarehouse from "./warehouse/Assignment";
 import Move from "./warehouse/moveshipment";
 import UserDashboard from "./Pages/UserDashboard";
 import Payment from "./component/payment";
-
+import UserPayment from "./component/userpayment"
 // SUPPORT
 import SupportLayout from "./Support/supportLayout";
 import CreateTicket from "./Support/createTicket";
@@ -23,20 +23,23 @@ import MyTickets from "./Support/myTickets";
 import TicketChat from "./Support/Ticketchats";
 import AdminTickets from "./Support/Admintickets";
 import AdminChat from "./Support/Adminchat";
-
+import Forgotpassword from "./Pages/forgotpassword"
+import Resetpassword from "./Pages/reset"
+import Home from "./Pages/Home";
 /* ---------------- PROTECTED ROUTE ---------------- */
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  if (!user) return <Login />;
+  // 🔥 NOT LOGGED IN
+  if (!user) return <Navigate to="/" replace />;
 
+  // 🔥 ROLE NOT ALLOWED
   if (!allowedRoles.includes(user.role)) {
-    return <h1 style={{ padding: "20px" }}>Access Denied ❌</h1>;
+    return <Navigate to="/" replace />;
   }
 
   return children;
 };
-
 function App() {
   const [key, setKey] = useState(0);
 
@@ -50,17 +53,22 @@ function App() {
   return (
     <Router key={key}>
       <Header />
+      {/* <Home/> */}
 
       <Routes>
-
+          <Route path="/" element={<Home />} />
         {/* PUBLIC */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<SearchPage />} />
-
+<Route path="/forgot-password" element={<Forgotpassword />} />
+<Route path="/reset-password/:token" element={<Resetpassword />} />
         {/* PROTECTED LAYOUT */}
-        <Route path="/" element={<Sidebar />}>
-
+              <Route
+          path="/"
+         element={<Sidebar/>}
+        >
+        
 
           {/* DASHBOARDS */}
           <Route
@@ -135,12 +143,19 @@ function App() {
           <Route
             path="payment"
             element={
-              <ProtectedRoute allowedRoles={["admin","user", "subuser"]}>
+              <ProtectedRoute allowedRoles={["admin"]}>
                 <Payment />
               </ProtectedRoute>
             }
           />
-
+              <Route
+            path="userpayment"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <UserPayment />
+              </ProtectedRoute>
+            }
+          />
        
           {/* PROFILE */}
           <Route
@@ -158,7 +173,7 @@ function App() {
           <Route
             path="support"
             element={
-              <ProtectedRoute allowedRoles={["admin", "user", "subuser"]}>
+              <ProtectedRoute allowedRoles={["admin", "user"]}>
                 <SupportLayout />
               </ProtectedRoute>
             }
@@ -167,7 +182,7 @@ function App() {
             <Route
               path="create"
               element={
-                <ProtectedRoute allowedRoles={["user", "subuser"]}>
+                <ProtectedRoute allowedRoles={["user"]}>
                   <CreateTicket />
                 </ProtectedRoute>
               }
@@ -176,7 +191,7 @@ function App() {
             <Route
               path="my"
               element={
-                <ProtectedRoute allowedRoles={["user", "subuser"]}>
+                <ProtectedRoute allowedRoles={["user"]}>
                   <MyTickets />
                 </ProtectedRoute>
               }

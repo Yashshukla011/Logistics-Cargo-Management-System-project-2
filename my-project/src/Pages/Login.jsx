@@ -1,7 +1,8 @@
 import { useState } from "react";
 import API from "../api/axios";
 import { useNavigate } from "react-router-dom";
-
+import { Link } from "react-router-dom";
+import socket from "../Support/socket";
 const Login = () => {
   const [data, setData] = useState({
     login: "",
@@ -52,7 +53,8 @@ const Login = () => {
       // ✅ save fresh session
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("token", token);
-
+        socket.connect();
+socket.emit("register", user._id);
       // optional sync event
       window.dispatchEvent(new Event("userChanged"));
 
@@ -96,7 +98,7 @@ const Login = () => {
           onChange={handleChange}
           className="w-full mb-6 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-
+          
         <button
           type="submit"
           disabled={loading}
@@ -104,6 +106,11 @@ const Login = () => {
         >
           {loading ? "Logging in..." : "Login"}
         </button>
+       <div className="flex justify-center mt-2">
+  <Link to="/forgot-password" className="text-blue-500 hover:underline">
+    Forgot Password?
+  </Link>
+</div>
       </form>
     </div>
   );

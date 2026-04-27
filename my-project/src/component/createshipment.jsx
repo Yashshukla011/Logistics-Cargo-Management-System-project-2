@@ -4,7 +4,10 @@ import API from "../api/axios";
 const CreateShipment = () => {
   const [loading, setLoading] = useState(false);
   const [warehouses, setWarehouses] = useState([]); // ✅ NEW
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState(""); // ✅ NEW
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
+    
+ // ✅ NEW
+const RATE_PER_KG = 50;
 
   const [data, setData] = useState({
     receiverName: "",
@@ -34,6 +37,7 @@ const CreateShipment = () => {
       // ✅ 1. CREATE SHIPMENT
       const res = await API.post("/shipments", payload, {
         withCredentials: true,
+        
       });
 
       const shipment = res.data.data || res.data;
@@ -47,6 +51,13 @@ const CreateShipment = () => {
       }
 
       alert("Shipment Created & Assigned ✅");
+       setData({
+      sender: "",
+      receiver: "",
+      address: "",
+      weight: "",
+      phone: "",
+    });
     } catch (err) {
       console.log(err.response?.data);
       alert("Error ❌");
@@ -88,7 +99,9 @@ const CreateShipment = () => {
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-200 rounded-lg"
           />
-
+          <h1 className="text-lg font-semibold">
+  Rate per KG: <span className="text-green-600">₹{RATE_PER_KG} / kg</span>
+</h1>
           <input
             name="weight"
             placeholder="Weight (kg)"

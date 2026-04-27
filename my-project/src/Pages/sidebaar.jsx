@@ -63,7 +63,7 @@ const Sidebaar = () => {
             <span className={textClass}>Create Shipment</span>
           </NavLink>
         )}
-
+      
         {/* ORDERS (user + subuser) */}
         {canViewOrders && (
           <NavLink to="/fetchshipments" className={linkClass}>
@@ -71,7 +71,19 @@ const Sidebaar = () => {
             <span className={textClass}>My Orders</span>
           </NavLink>
         )}
+{isAdmin && (
+  <NavLink to="/payment" className={linkClass}>
+    <User size={20} className={iconClass} />
+    <span className={textClass}>Payment (Admin)</span>
+  </NavLink>
+)}
 
+{isUser && (
+  <NavLink to="/userpayment" className={linkClass}>
+    <User size={20} className={iconClass} />
+    <span className={textClass}>My Payments</span>
+  </NavLink>
+)}
         {/* ADMIN ONLY */}
         {isAdmin && (
           <>
@@ -103,11 +115,11 @@ const Sidebaar = () => {
           <span className={textClass}>Support</span>
         </NavLink>
 
-        <NavLink to="/payment" className={linkClass}>
+        {/* <NavLink to="/payment" className={linkClass}>
           <User size={20} className={iconClass} />
           <span className={textClass}>Payment</span>
-        </NavLink>
-
+        </NavLink> */}
+         
         <NavLink to="/profile" className={linkClass}>
           <User size={20} className={iconClass} />
           <span className={textClass}>Profile</span>

@@ -15,16 +15,17 @@ const AssignShipment = () => {
   // 🔥 Fetch shipments + warehouses
   const fetchData = async () => {
     try {
-      // ✅ CHANGE ONLY THIS LINE
+      // ✅ FIXED HERE
       const shipRes = await API.get(
-        user?.role === "admin" ? "/shipments/all" : "/shipments/my"
+        user?.role === "admin"
+          ? "/shipments/all"   // ✅ IMPORTANT FIX
+          : "/shipments/my"
       );
 
       const wareRes = await API.get("/warehouse/");
 
       console.log("ALL SHIPMENTS:", shipRes.data);
 
-      // ✅ SAFE SET
       setShipments(
         Array.isArray(shipRes.data?.data)
           ? shipRes.data.data
@@ -65,7 +66,6 @@ const AssignShipment = () => {
       setShipmentId("");
       setWarehouseId("");
 
-      // ✅ REFRESH DATA AFTER ASSIGN
       fetchData();
 
     } catch (err) {
@@ -86,7 +86,6 @@ const AssignShipment = () => {
 
         <form onSubmit={handleAssign} className="space-y-4">
 
-          {/* Shipment Dropdown */}
           <select
             value={shipmentId}
             onChange={(e) => setShipmentId(e.target.value)}
@@ -102,7 +101,6 @@ const AssignShipment = () => {
               ))}
           </select>
 
-          {/* Warehouse Dropdown */}
           <select
             value={warehouseId}
             onChange={(e) => setWarehouseId(e.target.value)}
@@ -117,7 +115,6 @@ const AssignShipment = () => {
             ))}
           </select>
 
-          {/* Button */}
           <button
             type="submit"
             disabled={loading}

@@ -49,10 +49,10 @@ const Register = () => {
        alert("Registration successful!");
       navigate("/login");
     } catch (err) {
-      console.log(err.response?.data);
+        alert(err.response?.data?.message || "Registration failed");
     }
   };
-
+    
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-gray-200 px-4">
       <form
@@ -101,7 +101,7 @@ const Register = () => {
           <option value="">Select Role</option>
           <option value="admin">Admin</option>
           <option value="user">User</option>
-          <option value="subuser">Sub User</option>
+          
         </select>
 
         {/* 📸 Image Upload */}
