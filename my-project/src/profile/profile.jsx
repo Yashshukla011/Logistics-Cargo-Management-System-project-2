@@ -1,57 +1,70 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import API from "../api/axios";
+
+const COLORS = ["#22c55e", "#f59e0b", "#6366f1"];
 
 const Profile = () => {
   const [data, setData] = useState(null);
-  const [activeTab, setActiveTab] = useState("profile");
-
   const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     fullName: "",
     email: "",
-  });
-
-  const [passwords, setPasswords] = useState({
-    oldPassword: "",
-    newPassword: "",
+    phone: "",
+    address: "",
   });
 
   const BASE_URL = "http://localhost:5000";
 
-  const getImageUrl = (avatar) => {
-    if (!avatar) return "/default.png";
-    return `${BASE_URL}/${avatar.replace(/\\/g, "/")}`;
-  };
+  const getImageUrl = (avatar) =>
+    avatar ? `${BASE_URL}/${avatar.replace(/\\/g, "/")}` : "/default.png";
 
   useEffect(() => {
     fetchProfile();
   }, []);
 
-  // ================= PROFILE =================
   const fetchProfile = async () => {
+    const res = await API.get("/user/me", { withCredentials: true });
+
+    setData(res.data);
+
+    setForm({
+      fullName: res.data?.user?.fullName || "",
+      email: res.data?.user?.email || "",
+      phone: res.data?.user?.phone || "",
+      address: res.data?.user?.address || "",
+    });
+  };
+
+  const updateProfile = async () => {
     try {
-      const res = await API.get("/user/me", {
+      setLoading(true);
+
+      const formData = new FormData();
+      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
+
+      if (avatarFile) formData.append("avatar", avatarFile);
+
+      await API.put("/user/update", formData, {
         withCredentials: true,
       });
 
-      setData(res.data);
+      setAvatarFile(null);
+      await fetchProfile();
 
-      setForm({
-        fullName: res.data?.user?.fullName || "",
-        email: res.data?.user?.email || "",
-      });
-
-    } catch (err) {
-      console.log(err);
+      alert("Profile Updated Successfully");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ================= DELETE AVATAR =================
   const deleteAvatar = async () => {
     try {
-      if (!window.confirm("Remove profile photo?")) return;
+      const confirmDelete = window.confirm("Remove profile photo?");
+      if (!confirmDelete) return;
 
       await API.delete("/avatar", {
         withCredentials: true,
@@ -60,278 +73,170 @@ const Profile = () => {
       setAvatarFile(null);
       await fetchProfile();
 
-      alert("✅ Profile photo removed");
-
+      alert("Photo Removed Successfully");
     } catch (err) {
       console.log(err);
-      alert("❌ Error deleting image");
+      alert("Failed To Remove Photo");
     }
   };
 
-  // ================= UPDATE =================
-  const updateProfile = async () => {
-    try {
-      setLoading(true);
-
-      const formData = new FormData();
-      formData.append("fullName", form.fullName);
-      formData.append("email", form.email);
-
-      if (avatarFile) {
-        formData.append("avatar", avatarFile);
-      }
-
-      await API.put("/user/update", formData, {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      setAvatarFile(null);
-      await fetchProfile();
-
-      alert("✅ Profile Updated");
-
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ================= PASSWORD =================
-  const changePassword = async () => {
-    try {
-      if (!passwords.oldPassword || !passwords.newPassword) {
-        alert("Please fill all fields");
-        return;
-      }
-
-      if (passwords.newPassword.length < 6) {
-        alert("Password must be at least 6 characters");
-        return;
-      }
-
-      await API.put("/user/change-password", passwords, {
-        withCredentials: true,
-      });
-
-      alert("Password updated successfully");
-
-      setPasswords({
-        oldPassword: "",
-        newPassword: "",
-      });
-
-    } catch (err) {
-      console.log(err);
-      alert("Password change failed");
-    }
-  };
-
-  if (!data) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-indigo-600 font-semibold animate-pulse">
-          Loading Profile...
-        </div>
-      </div>
-    );
-  }
+  if (!data) return <div className="p-10">Loading...</div>;
 
   const { user, stats, recentShipments } = data;
 
+  const chartData = [
+    { name: "Delivered", value: stats?.delivered || 0 },
+    { name: "Pending", value: stats?.pending || 0 },
+    { name: "Total", value: stats?.total || 0 },
+  ];
+
+  const completion =
+    [form.fullName, form.email, form.phone, form.address].filter(Boolean).length * 25;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-      {/* HERO */}
-      <div className="relative h-72 bg-gray-900">
-
-        <label className="absolute inset-0 cursor-pointer">
-          <input
-            type="file"
-            hidden
-            onChange={(e) => setAvatarFile(e.target.files[0])}
-          />
-
-          <img
-            src={`${getImageUrl(user?.avatar)}?t=${Date.now()}`}
-            className="w-full h-full object-cover opacity-70"
-          />
-        </label>
-
-        {/* PROFILE CARD */}
-        <div className="absolute bottom-[-40px] left-10 flex items-center gap-4 bg-white shadow-xl rounded-2xl p-4">
-
-          {/* AVATAR + DELETE */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-white border rounded-3xl p-6 shadow-lg flex flex-col md:flex-row gap-6 items-center"
+        >
           <div className="flex flex-col items-center">
-
-            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-indigo-500">
+            <label className="relative cursor-pointer">
               <img
                 src={`${getImageUrl(user?.avatar)}?t=${Date.now()}`}
-                className="w-full h-full object-cover border-2"
+                className="w-28 h-28 rounded-full border-4 border-indigo-500 object-cover"
               />
-            </div>
 
-            {/* DELETE BUTTON */}
+              <input
+                hidden
+                type="file"
+                onChange={(e) => setAvatarFile(e.target.files[0])}
+              />
+            </label>
+
             {user?.avatar && (
               <button
                 onClick={deleteAvatar}
-                className="text-xs text-red-500 mt-2 hover:underline"
+                className="mt-3 px-4 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg"
               >
                 Remove Photo
               </button>
             )}
-
           </div>
 
-          {/* USER INFO */}
-          <div>
-            <h2 className="text-xl font-bold">{user?.fullName}</h2>
-            <p className="text-sm text-gray-500">{user?.email}</p>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-800">{user?.fullName}</h1>
+            <p className="text-gray-500">{user?.email}</p>
 
-            <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
+            <span className="inline-block mt-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-600 text-sm">
               {user?.role}
             </span>
+
+            <div className="mt-4">
+              <div className="flex justify-between text-sm mb-1 text-gray-600">
+                <span>Profile Completion</span>
+                <span>{completion}%</span>
+              </div>
+
+              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500"
+                  style={{ width: `${completion}%` }}
+                />
+              </div>
+            </div>
           </div>
+        </motion.div>
 
-        </div>
-      </div>
-
-      {/* CONTENT */}
-      <div className="pt-20 px-6">
-
-        {/* STATS */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-
-          <div className="bg-white p-4 rounded-xl shadow">
-            <p>Total</p>
-            <h2 className="text-xl font-bold">{stats?.total}</h2>
-          </div>
-
-          <div className="bg-green-100 p-4 rounded-xl shadow">
-            <p>Delivered</p>
-            <h2 className="text-xl font-bold text-green-600">
-              {stats?.delivered}
-            </h2>
-          </div>
-
-          <div className="bg-yellow-100 p-4 rounded-xl shadow">
-            <p>Pending</p>
-            <h2 className="text-xl font-bold text-yellow-600">
-              {stats?.pending}
-            </h2>
-          </div>
-
-        </div>
-
-        {/* TABS */}
-        <div className="flex gap-6 border-b mb-4">
-          {["profile", "security", "shipments"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={`pb-2 capitalize font-medium ${
-                activeTab === t
-                  ? "border-b-2 border-indigo-600 text-indigo-600"
-                  : "text-gray-500"
-              }`}
-            >
-              {t}
-            </button>
+        <div className="grid md:grid-cols-3 gap-4">
+          {[
+            ["Total", stats?.total],
+            ["Delivered", stats?.delivered],
+            ["Pending", stats?.pending],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-white rounded-2xl p-5 shadow">
+              <p className="text-gray-500">{label}</p>
+              <h2 className="text-3xl font-bold text-gray-800">{value}</h2>
+            </div>
           ))}
         </div>
 
-        {/* PROFILE TAB */}
-        {activeTab === "profile" && (
-          <div className="bg-white p-5 rounded-xl shadow">
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-3xl p-6 shadow">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Shipment Analytics
+            </h2>
 
-            <input
-              className="w-full border p-2 rounded mb-3"
-              value={form.fullName}
-              onChange={(e) =>
-                setForm({ ...form, fullName: e.target.value })
-              }
-              placeholder="Full Name"
-            />
-
-            <input
-              className="w-full border p-2 rounded mb-3"
-              value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
-              placeholder="Email"
-            />
-
-            <button
-              onClick={updateProfile}
-              disabled={loading}
-              className="w-full bg-indigo-600 text-white py-2 rounded"
-            >
-              {loading ? "Updating..." : "Update Profile"}
-            </button>
-
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={chartData} dataKey="value" outerRadius={90}>
+                  {chartData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        )}
 
-        {/* SECURITY TAB */}
-        {activeTab === "security" && (
-          <div className="bg-white p-5 rounded-xl shadow">
+          <div className="bg-white rounded-3xl p-6 shadow">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Edit Profile
+            </h2>
 
-            <input
-              type="password"
-              className="w-full border p-2 rounded mb-3"
-              placeholder="Old Password"
-              value={passwords.oldPassword}
-              onChange={(e) =>
-                setPasswords({ ...passwords, oldPassword: e.target.value })
-              }
-            />
+            <div className="space-y-3">
+              {Object.keys(form).map((field) => (
+                <input
+                  key={field}
+                  value={form[field]}
+                  onChange={(e) =>
+                    setForm({ ...form, [field]: e.target.value })
+                  }
+                  placeholder={field}
+                  className="w-full p-3 rounded-xl border border-gray-300 bg-gray-50"
+                />
+              ))}
 
-            <input
-              type="password"
-              className="w-full border p-2 rounded mb-3"
-              placeholder="New Password"
-              value={passwords.newPassword}
-              onChange={(e) =>
-                setPasswords({ ...passwords, newPassword: e.target.value })
-              }
-            />
-
-            <button
-              onClick={changePassword}
-              className="w-full bg-red-500 text-white py-2 rounded"
-            >
-              Update Password
-            </button>
-
+              <button
+                onClick={updateProfile}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold"
+              >
+                {loading ? "Updating..." : "Save Changes"}
+              </button>
+            </div>
           </div>
-        )}
+        </div>
 
-        {/* SHIPMENTS */}
-        {activeTab === "shipments" && (
-          <div className="bg-white p-5 rounded-xl shadow max-h-96 overflow-y-auto">
+        <div className="bg-white rounded-3xl p-6 shadow">
+          <h2 className="text-xl font-bold mb-4 text-gray-800">
+            Recent Shipments
+          </h2>
 
+          <div className="space-y-3 max-h-80 overflow-y-auto">
             {recentShipments?.length ? (
               recentShipments.map((s) => (
                 <div
                   key={s._id}
-                  className="border p-3 rounded mb-2"
+                  className="p-4 rounded-2xl bg-gray-50 border"
                 >
-                  <p className="font-medium">
-                    {s.receiverName} → {s.receiverAddress}
+                  <p className="font-semibold text-gray-800">
+                    {s.receiverName}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-gray-500">
+                    {s.receiverAddress}
+                  </p>
+                  <span className="text-xs text-indigo-600">
                     {s.status}
-                  </p>
+                  </span>
                 </div>
               ))
             ) : (
-              <p className="text-gray-400">No shipments found</p>
+              <p>No shipments found</p>
             )}
-
           </div>
-        )}
+        </div>
 
       </div>
     </div>
