@@ -5,7 +5,8 @@ import { Apierror } from "../utils/ApiError.js"; // 👈 small 'e'
 import crypto from "crypto";
 import { sendEmail } from "../utils/mail.js";
 
-
+import dotenv from "dotenv";
+dotenv.config();
 const GenerateAccessAndrefreshTocken = async (user_id) => {
   try {
     const user = await User.findById(user_id);
@@ -56,7 +57,11 @@ const Registeruser = AsyncHandler(async (req, res) => {
     role,
     avatar, 
   });
-
+await sendEmail(
+  email,
+  "Welcome to CargoX",
+  `Hello ${fullName}, your account has been created successfully!`
+);
   const createdUser = await User.findById(newUser._id).select(
     "-password -refreshtoken"
   );
@@ -97,7 +102,18 @@ const loginUser = AsyncHandler(async (req, res) => {
   if (!isMatch) {
     throw new Apierror(401, "Password incorrect");
   }
+sendEmail(
+  user.email,
+  "New Login Alert",
+  `
+Hi ${user.fullName},
 
+A login to your account was detected.
+
+Time: ${new Date().toLocaleString()}
+If this wasn't you, reset your password immediately.
+`
+).catch(err => console.error("Email failed:", err));
 
   const { accessToken, refreshToken } =
     await GenerateAccessAndrefreshTocken(user._id);
@@ -168,7 +184,7 @@ export const forgotPassword = async (req, res) => {
   user.resetTokenExpire = Date.now() + 15 * 60 * 1000; // 15 min
   await user.save();
 
-  const resetLink = `http://localhost:5173/reset-password/${token}`;
+ const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
   await sendEmail(
     email,
