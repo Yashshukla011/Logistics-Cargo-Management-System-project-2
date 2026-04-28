@@ -16,7 +16,7 @@ const onlineUsers = new Map();
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "https://logistics-cargo-management-system-p.vercel.app/",
+          origin: "https://logistics-cargo-management-system-p.vercel.app",
       credentials: true,
     },
   });
