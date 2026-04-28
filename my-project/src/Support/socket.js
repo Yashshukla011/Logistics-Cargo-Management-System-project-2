@@ -2,9 +2,10 @@ import { io } from "socket.io-client";
 
 
 
-const socket = io("http://localhost:5000", {
+const socket = io("https://logistics-cargo-management-system.onrender.com", {
   transports: ["websocket", "polling"],
-  autoConnect: false, // 🔥 IMPORTANT FIX
+  autoConnect: false,
+  withCredentials: true,
 });
 
 export default socket;
