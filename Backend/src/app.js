@@ -15,8 +15,10 @@ import revenueRoutes from "./Routes/adminrevanue.route.js";
 import Deleteimg from "./Routes/avatar.route.js"
 const app = express();
 
-const allowedOrigins = ["http://localhost:5173"];
-
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://logistics-cargo-management-system-p.vercel.app"
+];
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
