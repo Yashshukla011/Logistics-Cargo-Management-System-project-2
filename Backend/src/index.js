@@ -8,7 +8,7 @@ import connectDB from "../src/Database/db.js";
 import { app } from "./app.js";
 
 import User from "../src/Models/User.model.js";
-import Support from "../src/Models/support.model.js";
+import Support from "../src/Models/Support.model.js";
 
 let io;
 const onlineUsers = new Map();
