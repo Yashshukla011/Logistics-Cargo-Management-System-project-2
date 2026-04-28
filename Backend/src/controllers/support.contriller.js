@@ -1,5 +1,5 @@
 import AsyncHandler from "../utils/Asynchandler.js";
-import Support from "../Models/support.model.js";
+import Support from "../Models/Support.model.js";
 import { sendNotification } from "../index.js";
 import User from "../Models/User.model.js";
 
