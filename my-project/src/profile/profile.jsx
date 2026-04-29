@@ -72,7 +72,7 @@ const BASE_URL = "https://logistics-cargo-management-system.onrender.com";
       setAvatarFile(null);
       await fetchProfile();
 
-      alert("Photo Removed Successfully");
+      // alert("Photo Removed Successfully");
     } catch (err) {
       console.log(err);
       alert("Failed To Remove Photo");
