@@ -1,4 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
+import { Search, LogOut } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import NotificationBell from "../Notification";
@@ -112,66 +114,83 @@ useEffect(() => {
   };
 
   return (
-    <header className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
+    <header className="w-full sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm px-6 py-3 flex justify-between items-center">
 
-      {/* LOGO */}
+  {/* LOGO */}
+  <div className="flex items-center gap-3">
+    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2.5 rounded-xl shadow-md">
+      📦
+    </div>
+    <h1 className="font-bold text-xl text-gray-800 tracking-wide">
+      CargoX
+    </h1>
+  </div>
+
+  {/* SEARCH */}
+  <div className="relative w-1/3">
+    <Search
+      size={18}
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+    />
+    <input
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      onKeyDown={handleSearchKey}
+      placeholder="Search shipments..."
+      className="w-full pl-11 pr-4 py-2.5 bg-gray-100 border border-gray-200 rounded-full outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+    />
+  </div>
+
+  {/* RIGHT SIDE */}
+  <div className="flex items-center gap-4">
+
+    {user && <NotificationBell user={user} />}
+
+    {!user ? (
       <div className="flex items-center gap-3">
-        <div className="bg-blue-600 text-white p-2 rounded-lg">📦</div>
-        <h1 className="font-bold text-lg">CargoX</h1>
+        <Link
+          to="/register"
+          className="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-medium shadow transition-all"
+        >
+          Register
+        </Link>
+
+        <Link
+          to="/login"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-medium shadow transition-all"
+        >
+          Login
+        </Link>
       </div>
+    ) : (
+      <>
+        <span className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-full capitalize font-medium border border-blue-100">
+          {user.role}
+        </span>
 
-      {/* SEARCH */}
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        onKeyDown={handleSearchKey}
-        placeholder="Search shipments..."
-        className="px-4 py-2 bg-gray-100 rounded-full w-1/3 outline-none"
-      />
+        <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md border-2 border-white">
+          {user.avatar ? (
+            <img
+              src={`${BASE_URL}/${user.avatar.replace(/\\/g, "/")}?t=${Date.now()}`}
+              className="w-full h-full object-cover"
+              alt="avatar"
+            />
+          ) : (
+            getInitials(user.fullName || user.email)
+          )}
+        </div>
 
-      {/* RIGHT SIDE */}
-      <div className="flex items-center gap-4">
-
-        {user && <NotificationBell user={user} />}
-
-        {!user ? (
-          <div className="flex items-center gap-3">
-            <Link to="/register" className="bg-green-500 text-white px-3 py-1 rounded">
-              Register
-            </Link>
-            <Link to="/login" className="bg-blue-600 text-white px-3 py-1 rounded">
-              Login
-            </Link>
-          </div>
-        ) : (
-          <>
-            <span className="text-sm bg-gray-100 px-2 py-1 rounded capitalize">
-              {user.role}
-            </span>
-
-            {/* 🔥 IMAGE FIX (cache busting) */}
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-blue-600 flex items-center justify-center text-white font-bold">
-              {user.avatar ? (
-                <img
-                  src={`${BASE_URL}/${user.avatar.replace(/\\/g, "/")}?t=${Date.now()}`}
-                  className="w-full h-full object-cover"
-                  alt="avatar"
-                />
-              ) : (
-                getInitials(user.fullName || user.email)
-              )}
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-3 py-1 rounded"
-            >
-              Logout
-            </button>
-          </>
-        )}
-      </div>
-    </header>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full font-medium shadow transition-all"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
+      </>
+    )}
+  </div>
+</header>
   );
 };
 

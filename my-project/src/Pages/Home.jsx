@@ -4,177 +4,194 @@ const Home = () => {
     const navigate = useNavigate();
 
   return (
-    <div className="bg-gray-100 min-h-screen flex flex-col justify-between">
+   <div className="bg-white min-h-screen flex flex-col justify-between overflow-x-hidden">
 
-      {/* 🚚 Hero Section */}
-      <section className="text-center py-20 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Fast & Reliable Cargo Delivery
+  {/* HERO SECTION */}
+  <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white py-24 px-6 overflow-hidden">
+    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_white,_transparent_40%)]" />
+
+    <div className="relative max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <span className="inline-block bg-blue-500/20 border border-blue-400/30 text-blue-200 px-4 py-1 rounded-full text-sm mb-4">
+          Trusted Logistics Partner
+        </span>
+
+        <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
+          Delivering Cargo
+          <span className="block text-blue-400">Smarter & Faster</span>
         </h1>
-        <p className="text-lg mb-6">
-          We deliver your goods safely, quickly, and efficiently across the country.
+
+        <p className="text-lg text-gray-300 mb-8 max-w-xl">
+          End-to-end logistics solutions for businesses and individuals —
+          secure, real-time tracked, and nationwide delivery coverage.
         </p>
 
-        <button 
-       onClick={() => {
-  const user = JSON.parse(localStorage.getItem("user"));
+        <button
+          onClick={() => {
+            const user = JSON.parse(localStorage.getItem("user"));
 
-  if (user?.role === "admin") navigate("/admin");
-  else if(user?.role === "user") navigate("/user");
-  else navigate("/login")
-}}
-        className="bg-black px-6 py-3 rounded-lg text-white hover:bg-gray-800 transition">
-          Get Started
+            if (user?.role === "admin") navigate("/admin");
+            else if (user?.role === "user") navigate("/user");
+            else navigate("/login");
+          }}
+          className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-semibold shadow-xl transition-all hover:scale-105"
+        >
+          Get Started →
         </button>
-      </section>
+      </div>
 
-      {/* 📦 Services */}
-      <section className="py-14 px-6">
-        <h2 className="text-3xl font-bold text-center mb-10">
-          Our Services
-        </h2>
+      <div className="grid grid-cols-2 gap-5">
+        {[
+          "Real-Time Tracking 📍",
+          "Fast Dispatch ⚡",
+          "Safe Packaging 📦",
+          "24/7 Support ☎️",
+        ].map((item, i) => (
+          <div
+            key={i}
+            className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl"
+          >
+            <h3 className="font-semibold text-lg">{item}</h3>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
 
-        <div className="grid md:grid-cols-4 gap-6">
-          {[
-            "Air Freight ✈️",
-            "Road Transport 🚚",
-            "Warehousing 🏬",
-            "Express Delivery ⚡",
-          ].map((service, i) => (
-            <div
-              key={i}
-              className="bg-white p-6 rounded-2xl shadow hover:shadow-2xl transition text-center"
-            >
-              <h3 className="text-lg font-semibold">{service}</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                Reliable and fast service for your cargo needs.
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+  {/* SERVICES */}
+  <section className="py-20 px-6 bg-gray-50">
+    <div className="max-w-7xl mx-auto">
+      <h2 className="text-4xl font-bold text-center mb-12">
+        Premium Logistics Services
+      </h2>
 
-      {/* ⭐ Why Choose Us */}
-      <section className="bg-white py-14 px-6">
-        <h2 className="text-3xl font-bold text-center mb-10">
-          Why Choose Us
-        </h2>
+      <div className="grid md:grid-cols-4 gap-8">
+        {[
+               "Fast Dispatch ⚡",
 
-        <div className="grid md:grid-cols-3 gap-8 text-center">
-          <div>
-            <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
+          "Road Transport 🚚",
+          "Warehousing 🏬",
+          "Express Delivery ⚡",
+        ].map((service, i) => (
+          <div
+            key={i}
+            className="bg-white p-8 rounded-3xl shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all border border-gray-100"
+          >
+            <h3 className="text-xl font-bold mb-3">{service}</h3>
             <p className="text-gray-500">
-              We ensure quick and timely delivery of your shipments.
+              High-performance cargo solutions tailored to your logistics needs.
             </p>
           </div>
+        ))}
+      </div>
+    </div>
+  </section>
 
-          <div>
-            <h3 className="text-xl font-semibold mb-2">Secure Handling</h3>
-            <p className="text-gray-500">
-              Your goods are handled with utmost care and safety.
-            </p>
-          </div>
+  {/* WHY CHOOSE US */}
+  <section className="py-20 px-6 bg-white">
+    <div className="max-w-6xl mx-auto">
+      <h2 className="text-4xl font-bold text-center mb-14">
+        Why Businesses Trust CargoX
+      </h2>
 
-          <div>
-            <h3 className="text-xl font-semibold mb-2">24/7 Support</h3>
-            <p className="text-gray-500">
-              Our team is always available to assist you anytime.
-            </p>
+      <div className="grid md:grid-cols-3 gap-10">
+        {[
+          ["Fast Delivery", "Lightning-fast shipping across all regions."],
+          ["Secure Handling", "Advanced protection for every shipment."],
+          ["24/7 Support", "Always available customer assistance team."],
+        ].map(([title, desc], i) => (
+          <div
+            key={i}
+            className="text-center p-8 rounded-3xl bg-gray-50 hover:bg-blue-50 transition"
+          >
+            <h3 className="text-2xl font-bold mb-3">{title}</h3>
+            <p className="text-gray-600">{desc}</p>
           </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* STATS */}
+  <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+    <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8 text-center">
+      {[
+        ["500+", "Shipments Delivered"],
+        ["100+", "Active Clients"],
+        ["50+", "Cities Covered"],
+        ["24/7", "Support Available"],
+      ].map(([num, label], i) => (
+        <div key={i}>
+          <h3 className="text-5xl font-extrabold mb-2">{num}</h3>
+          <p className="text-blue-100">{label}</p>
         </div>
-      </section>
+      ))}
+    </div>
+  </section>
 
-      {/* 📊 Stats */}
-      <section className="bg-blue-600 text-white py-12">
-        <div className="grid md:grid-cols-4 text-center gap-6">
-          <div>
-            <h3 className="text-3xl font-bold">500+</h3>
-            <p>Shipments Delivered</p>
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold">100+</h3>
-            <p>Active Clients</p>
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold">50+</h3>
-            <p>Cities Covered</p>
-          </div>
-          <div>
-            <h3 className="text-3xl font-bold">24/7</h3>
-            <p>Support Available</p>
-          </div>
-        </div>
-      </section>
+  {/* CTA */}
+  <section className="py-24 px-6 bg-slate-900 text-white text-center">
+    <h2 className="text-4xl font-bold mb-4">
+      Ready to Move Your Cargo?
+    </h2>
 
-      {/* 📞 Call to Action */}
-      <section className="py-16 text-center bg-gray-50">
-        <h2 className="text-3xl font-bold mb-4">
-          Ready to Ship Your Cargo?
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Join us today and experience hassle-free logistics service.
+    <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+      Join hundreds of businesses using CargoX for seamless cargo and logistics operations.
+    </p>
+
+    <button
+      onClick={() => navigate("/support/create")}
+      className="bg-blue-500 hover:bg-blue-600 px-10 py-4 rounded-xl font-semibold shadow-lg transition-all hover:scale-105"
+    >
+      Contact Us
+    </button>
+  </section>
+
+  {/* FOOTER */}
+  <footer className="bg-black text-gray-400">
+    <div className="max-w-7xl mx-auto px-6 py-14 grid md:grid-cols-4 gap-10">
+
+      <div>
+        <h2 className="text-white text-2xl font-bold mb-4">CargoX</h2>
+        <p>
+          Fast, secure and reliable logistics platform for modern cargo businesses.
         </p>
-
-        <button 
-        onClick={() => navigate("/support/create")}
-        className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
-          Contact Us
-        </button>
-      </section>
-
-      {/* 🔻 Footer */}
-      <footer className="bg-gray-900 text-gray-300 mt-10">
-
-      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
-
-        {/* COMPANY */}
-        <div>
-          <h2 className="text-white text-xl font-bold mb-3">CargoX</h2>
-          <p className="text-sm text-gray-400">
-            Fast, secure and reliable logistics & cargo delivery system across the country.
-          </p>
-        </div>
-
-        {/* QUICK LINKS */}
-        <div>
-          <h3 className="text-white font-semibold mb-3">Quick Links</h3>
-          <ul className="space-y-2 text-sm">
-            <li><a href="/" className="hover:text-white">Home</a></li>
-            <li><a href="/user" className="hover:text-white">Dashboard</a></li>
-            <li><a href="/support/create" className="hover:text-white">Contact Support</a></li>
-            <li><a href="/search" className="hover:text-white">Track Shipment</a></li>
-          </ul>
-        </div>
-
-        {/* SERVICES */}
-        <div>
-          <h3 className="text-white font-semibold mb-3">Services</h3>
-          <ul className="space-y-2 text-sm">
-            <li>Air Freight ✈️</li>
-            <li>Road Transport 🚚</li>
-            <li>Warehousing 🏬</li>
-            <li>Express Delivery ⚡</li>
-          </ul>
-        </div>
-
-        {/* CONTACT */}
-        <div>
-          <h3 className="text-white font-semibold mb-3">Contact</h3>
-          <p className="text-sm">Email: yashshukla@gmail.com</p>
-          <p className="text-sm">Phone: +91 9569405365</p>
-          <p className="text-sm">India</p>
-        </div>
-
       </div>
 
-      {/* BOTTOM BAR */}
-      <div className="border-t border-gray-700 text-center py-4 text-sm text-gray-500">
-        © {new Date().getFullYear()} CargoX. All rights reserved.
+      <div>
+        <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+        <ul className="space-y-2">
+          <li><a href="/" className="hover:text-white">Home</a></li>
+          <li><a href="/user" className="hover:text-white">Dashboard</a></li>
+          <li><a href="/support/create" className="hover:text-white">Support</a></li>
+          <li><a href="/search" className="hover:text-white">Track Shipment</a></li>
+        </ul>
       </div>
 
-    </footer>
+      <div>
+        <h3 className="text-white font-semibold mb-4">Services</h3>
+        <ul className="space-y-2">
+          <li>Air Freight ✈️</li>
+          <li>Road Transport 🚚</li>
+          <li>Warehousing 🏬</li>
+          <li>Express Delivery ⚡</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 className="text-white font-semibold mb-4">Contact</h3>
+        <p>Email: yashshukla@gmail.com</p>
+        <p>Phone: +91 9569405365</p>
+        <p>India</p>
+      </div>
 
     </div>
+
+    <div className="border-t border-gray-800 text-center py-5 text-sm">
+      © {new Date().getFullYear()} CargoX. All rights reserved.
+    </div>
+  </footer>
+</div>
   );
 };
 
