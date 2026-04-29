@@ -17,8 +17,7 @@ const Profile = () => {
     address: "",
   });
 
-  const BASE_URL = "http://localhost:5000";
-
+const BASE_URL = "https://logistics-cargo-management-system.onrender.com";
   const getImageUrl = (avatar) =>
     avatar ? `${BASE_URL}/${avatar.replace(/\\/g, "/")}` : "/default.png";
 
