@@ -14,7 +14,7 @@ const Header = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
-  const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://logistics-cargo-management-system.onrender.com";
 
   const fetchUser = async () => {
     const token = localStorage.getItem("token");
